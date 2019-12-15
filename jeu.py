@@ -6,6 +6,7 @@ INVALID = 9
 
 best = None
 start_time = time.time()
+visited = set()
 
 
 def print_board(board):
@@ -60,11 +61,52 @@ def try_all_directions(board, x, y, path):
     return locked
 
 
+def is_visited(board):
+    if tuple(a for b in board for a in b) in visited:
+        return True
+
+    if tuple(a for b in board for a in reversed(b)) in visited:
+        return True
+
+    if tuple(a for b in reversed(board) for a in b) in visited:
+        return True
+
+    if tuple(a for b in reversed(board) for a in reversed(b)) in visited:
+        return True
+
+    rows = len(board)
+    cols = len(board[0])
+    rot = tuple(tuple(board[x][y] for x in range(cols)) for y in range(rows))
+
+    if tuple(a for b in rot for a in b) in visited:
+        return True
+
+    if tuple(a for b in rot for a in reversed(b)) in visited:
+        return True
+
+    if tuple(a for b in reversed(rot) for a in b) in visited:
+        return True
+
+    if tuple(a for b in reversed(rot) for a in reversed(b)) in visited:
+        return True
+
+    return False
+
+
+def add_to_visited(board):
+    visited.add(tuple(a for b in board for a in b))
+
+
 def try_all_balls(board, path):
     global best
     global start_time
     all_locked = True
     remaining = 0
+
+    if is_visited(board):
+        return
+
+    add_to_visited(board)
 
     for y in range(len(board)):
         row = board[y]
@@ -74,6 +116,7 @@ def try_all_balls(board, path):
                 locked = try_all_directions(board, x, y, path)
                 if not locked:
                     all_locked = False
+
     if all_locked:
         if best is None or remaining < best:
             best = remaining
@@ -86,7 +129,7 @@ def try_all_balls(board, path):
 
 
 def main():
-    board = [
+    ysb_board = [
         "  OOO  ",
         " OOOOO ",
         "OO...OO",
@@ -96,7 +139,7 @@ def main():
         "  OOO  ",
     ]
 
-    xboard = [
+    classic_board = [
         "  OOO  ",
         "  OOO  ",
         "OOOOOOO",
@@ -106,15 +149,16 @@ def main():
         "  OOO  ",
     ]
 
-    # board = [" OOO ", "OOOOO", "OOOOO", "OOOOO", " OO. "]
-    # board = ["OO."]
-    # board = ["O", "O", "."]
+    board = ysb_board
 
     m = {" ": INVALID, "O": BALL, ".": EMPTY}
     board = [[m[c] for c in row] for row in board]
 
     print_board(board)
     try_all_balls(board, [])
+
+    elapsed = time.time() - start_time
+    print(f"All solutions tested in {elapsed} seconds. Best: {best} remaining balls.")
 
 
 main()
