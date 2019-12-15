@@ -1,5 +1,4 @@
-Jeu Solitaire Solver
-====================
+# Jeu Solitaire Solver
 
 Three engineers played a cooperative game of solitaire one evening.
 There was a playboard with place for up to 37 balls. To begin with
