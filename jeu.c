@@ -1,4 +1,4 @@
-
+#include <stdint.h>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,6 +6,8 @@
 
 int best = -1;
 struct timespec start_time;
+
+char* board_stack;
 
 void try_all_balls(const char *board, int rows, int cols);
 
@@ -31,6 +33,11 @@ char *copy_board(const char *board, int rows, int cols)
   return new_board;
 }
 
+void copy_board_stack(const char *board, int rows, int cols, int depth)
+{
+    memcpy(board_stack + (depth + 1) * rows * cols, board_stack + depth * rows * cols, rows * cols);
+}
+
 int try_all_directions(const char *board, int rows, int cols, int x, int y)
 {
   int locked = 1;
@@ -38,11 +45,12 @@ int try_all_directions(const char *board, int rows, int cols, int x, int y)
   if (y >= 2 && board[(y - 1) * cols + x] == 'O' && board[(y - 2) * cols + x] == '.')
   {
     char *new_board = copy_board(board, rows, cols);
-    new_board[y * cols + x] = '.';
+        new_board[y * cols + x] = '.';
     new_board[(y - 1) * cols + x] = '.';
     new_board[(y - 2) * cols + x] = 'O';
     locked = 0;
     try_all_balls(new_board, rows, cols);
+    free(new_board);
   }
 
   if (y < rows - 2 && board[(y + 1) * cols + x] == 'O' && board[(y + 2) * cols + x] == '.')
@@ -53,6 +61,7 @@ int try_all_directions(const char *board, int rows, int cols, int x, int y)
     new_board[(y + 2) * cols + x] = 'O';
     locked = 0;
     try_all_balls(new_board, rows, cols);
+    free(new_board);
   }
 
   if (x >= 2 && board[y * cols + x - 1] == 'O' && board[y * cols + x - 2] == '.')
@@ -63,6 +72,7 @@ int try_all_directions(const char *board, int rows, int cols, int x, int y)
     new_board[y * cols + x - 2] = 'O';
     locked = 0;
     try_all_balls(new_board, rows, cols);
+    free(new_board);
   }
 
   if (x < cols - 2 && board[y * cols + x + 1] == 'O' && board[y * cols + x + 2] == '.')
@@ -73,6 +83,7 @@ int try_all_directions(const char *board, int rows, int cols, int x, int y)
     new_board[y * cols + x + 2] = 'O';
     locked = 0;
     try_all_balls(new_board, rows, cols);
+    free(new_board);
   }
 
   return locked;
@@ -113,20 +124,22 @@ void try_all_balls(const char *board, int rows, int cols)
 
 int main(int argc, char *argv[])
 {
-  const char *board =
-      "  OOO  "
-      " OOOOO "
-      "OO...OO"
-      "OO...OO"
-      "OO...OO"
-      " OOOOO "
-      "  OOO  ";
-  const int rows = 7;
-  const int cols = 7;
+    const char *board =
+        "  OOO  "
+        " OOOOO "
+        "OO...OO"
+        "OO...OO"
+        "OO...OO"
+        " OOOOO "
+        "  OOO  ";
+    const int rows = 7;
+    const int cols = 7;
+    const int max_depth = rows * cols;
+    board_stack = malloc(rows * cols * max_depth);
 
-  clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
+    clock_gettime(CLOCK_MONOTONIC_RAW, &start_time);
 
-  print_board(board, rows, cols);
-  try_all_balls(board, rows, cols);
-  return 0;
+    print_board(board, rows, cols);
+    try_all_balls(board, rows, cols, 0);
+    return 0;
 }
